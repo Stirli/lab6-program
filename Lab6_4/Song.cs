@@ -1,13 +1,19 @@
 ﻿using System;
 
-namespace Lab6.Task4
+namespace Lab6_4
 {
     public class Song : IEquatable<Song>, IComparable<Song>
     {
         public string Name { get; set; }
         public string Artist { get; set; }
 
+        public override string ToString()
+        {
+            return string.Format("{0} - {1}", Name, Artist);
+        }
 
+
+        // Хеш-код. используется в коллекциях для быстрого сравнения объектов
         public override int GetHashCode()
         {
             unchecked
@@ -16,11 +22,7 @@ namespace Lab6.Task4
             }
         }
 
-        public override string ToString()
-        {
-            return string.Format("{0} - {1}", Name, Artist);
-        }
-
+        // То же самое
         public bool Equals(Song other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -28,6 +30,7 @@ namespace Lab6.Task4
             return string.Equals(Name, other.Name) && string.Equals(Artist, other.Artist);
         }
 
+        // То же самое
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -36,6 +39,7 @@ namespace Lab6.Task4
             return Equals((Song)obj);
         }
 
+        // Для метода Sort
         public int CompareTo(Song other)
         {
             if (ReferenceEquals(this, other)) return 0;

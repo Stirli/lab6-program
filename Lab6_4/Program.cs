@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Lab6.Task4;
 
 namespace Lab6_4
 {
@@ -66,29 +62,10 @@ namespace Lab6_4
             Console.WriteLine("---");
             foreach (T obj in enumearble)
             {
-                {
-                    Console.WriteLine("Далее -->");
-                    Console.ReadKey(true);
-                }
                 Console.WriteLine(obj);
             }
 
             Console.WriteLine("---");
-        }
-
-        // Выводит список на экран, индексируя, и возвращает введенный пользователем индекс
-        static int SelectItem<T>(IEnumerable<T> items)
-        {
-            // Счетчик
-            int i = 0;
-            foreach (T item in items)
-            {
-                // Сначала выводим индекс
-                Console.Write("{0,3}: ", i++);
-                // Выводим сам элемент
-                Console.WriteLine(item);
-            }
-            return ReadInt("Введите индекс:", 0, i);
         }
 
         // Выводит список на экран, индексируя, и возвращает введенный пользователем индекс
@@ -106,52 +83,65 @@ namespace Lab6_4
             }
             return items[ReadInt("Введите индекс:", 0, i)];
         }
+
         private static string SelDisk(Catalog catalog)
         {
             Console.WriteLine("Выбор диска:");
             string searchDisk = ReadString("Введите регулярное выражение для поиска дисков");
             Regex reg = new Regex(searchDisk, RegexOptions.IgnoreCase);
             // Перечисляем коллекцию дисков в массив
-            string[] disks1 = catalog.EnumerateDisks().Where(s => reg.IsMatch(s)).OrderBy(s => s).ToArray(); if (disks1.Length == 0)
+            List<string> diskList = new List<string>();
+            foreach (string disk in catalog.EnumerateDisks())
+            {
+                if (reg.IsMatch(disk))
+                {
+                    diskList.Add(disk);
+                }
+            }
+            diskList.Sort();
+
+            if (diskList.Count == 0)
             {
                 throw new ApplicationException("Элементов больше не найдено.\nВыход\n");
             }
+
             // SelectItem выводит на консоль коллекцию, и вовзращает выбранный пользователем диск
-            string selDisk = SelectItem(disks1, "Выберите диск");
+            string selDisk = SelectItem(diskList.ToArray(), "Выберите диск");
             Console.WriteLine("Выбран диск " + selDisk);
             return selDisk;
         }
 
         static void Main(string[] args)
         {
-            // Создаем пустой каталог
-            Catalog catalog = new Catalog();
-
-            int songsPerDisk = 10;
-            // Создаем диски
-            for (int i = 0; i < 100; i++)
-            {
-                catalog.AddDisk("Disk " + i);
-            }
-
-            // Создаем песни и добавляем их на диски
-            // Создаем массив, т.к. если оставить IEnumerable, то получение элемента по индексу каждый раз будет вызывать перечисление
-            string[] disks = catalog.EnumerateDisks().OrderBy(s => s).ToArray();
-            for (int i = 0; i < disks.Length * songsPerDisk; i++)
-            {
-                Song song = new Song { Artist = "Artist " + i % 10, Name = "Song " + i };
-                catalog.AddSong(song, disks[i / songsPerDisk]);
-            }
 
             try
             {
+                // Создаем пустой каталог
+                Catalog catalog = new Catalog();
+                int songsPerDisk = 10;
+                // Создаем диски
+                for (int i = 0; i < 100; i++)
+                {
+                    catalog.AddDisk("Disk " + i);
+                }
+
+                // Создаем песни и добавляем их на диски
+                // Создаем массив, т.к. если оставить IEnumerable, то получение элемента по индексу каждый раз будет вызывать перечисление
+                {
+                    List<string> diskList = catalog.EnumerateDisks();
+                    diskList.Sort();
+                    string[] disks = diskList.ToArray();
+                    for (int i = 0; i < disks.Length * songsPerDisk; i++)
+                    {
+                        Song song = new Song { Artist = "Artist " + i % 10, Name = "Song " + i };
+                        catalog.AddSong(song, disks[i / songsPerDisk]);
+                    }
+                }
                 while (true)
                 {
-                    try
-                    {
-                        // Меню
-                        string select = SelectItem(new[]
-                    {
+                    // Меню
+                    string select = SelectItem(new[]
+                {
                         "Добавить диск",
                         "Удалить диск",
                         "Добавить песню",
@@ -161,6 +151,8 @@ namespace Lab6_4
                         "Содержимое каталога",
                         "Поиск по исполнителю"
                     }, "Главное меню");
+                    try
+                    {
                         switch (select)
                         {
                             case "Добавить диск":
@@ -185,16 +177,22 @@ namespace Lab6_4
                                         {
                                             while (true)
                                             {
-                                                string[] disks1 = catalog.EnumerateDisks().Where(s => reg.IsMatch(s))
-                                                    .OrderBy(s => s).ToArray();
-                                                if (disks1.Length == 0)
+                                                List<string> diskList = new List<string>();
+                                                foreach (string disk in catalog.EnumerateDisks())
+                                                {
+                                                    if (reg.IsMatch(disk))
+                                                        diskList.Add(disk);
+                                                }
+                                                diskList.Sort();
+                                                string[] disks = diskList.ToArray();
+                                                if (disks.Length == 0)
                                                 {
                                                     Console.WriteLine("Элементов больше не найдено.\nВыход\n");
                                                     break;
                                                 }
 
                                                 // SelectItem выводит на консоль коллекцию, и вовзращает выбранный пользователем диск
-                                                string selDisk = SelectItem(disks1, "Выберите диск");
+                                                string selDisk = SelectItem(disks, "Выберите диск");
                                                 catalog.RemoveDisk(selDisk);
                                                 Console.WriteLine();
                                             }
@@ -251,22 +249,15 @@ namespace Lab6_4
                                 }
                             case "Содержимое каталога":
                                 {
-                                    int count = 0;
-                                    IEnumerable<string> sortedDisks = catalog.EnumerateDisks().OrderBy(s => s);
+                                    List<string> sortedDisks = catalog.EnumerateDisks();
+                                    sortedDisks.Sort();
                                     foreach (string disk in sortedDisks)
                                     {
                                         Console.WriteLine(disk);
                                         IEnumerable<Song> songs = catalog.EnumerateDisk(disk);
                                         foreach (Song song in songs)
                                         {
-                                            if (count >= Console.WindowHeight)
-                                            {
-                                                Console.WriteLine("Далее -->");
-                                                Console.ReadKey(true);
-                                                count = 0;
-                                            }
                                             Console.WriteLine("\t" + song);
-                                            count++;
                                         }
                                         Console.WriteLine();
                                     }
@@ -287,11 +278,15 @@ namespace Lab6_4
                                 break;
                             case "Поиск по исполнителю":
                                 Console.WriteLine("Поиск по исполнителю");
-                                Print(catalog.FindSongs(ReadString("Имя исполнителя (регулярное выражение)"))
-                                    .OrderBy(s => s.Name));
+                                List<Song> list = catalog.FindSongs(ReadString("Имя исполнителя (регулярное выражение)"));
+                                list.Sort();
+                                Print(list);
                                 break;
 
                         }
+
+                        Console.WriteLine("Нажмите любую клавишу");
+                        Console.ReadKey(true);
                     }
                     catch (ApplicationException e)
                     {

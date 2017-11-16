@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Lab6.Task4
+namespace Lab6_4
 {
     public class Catalog
     {
@@ -26,7 +26,7 @@ namespace Lab6.Task4
                 throw new ArgumentException("Имя диска не может быть пустым");
             if (_disks.Contains(name))
                 throw new ArgumentException("Диск уже существует");
-            _disks.Add(name, new HashSet<Song>());
+            _disks.Add(name, new List<Song>());
         }
 
         // Удалить диск.
@@ -35,17 +35,23 @@ namespace Lab6.Task4
             _disks.Remove(name);
         }
 
-
-        public IEnumerable<string> EnumerateDisks()
+        // Список дисков
+        public List<string> EnumerateDisks()
         {
-            return _disks.Keys.Cast<string>();
+            List<string> list = new List<string>();
+            foreach (string s in _disks.Keys)
+                list.Add(s);
+            return list;
         }
 
         // Список песен на диске
-        public IEnumerable<Song> EnumerateDisk(string disk)
+        public List<Song> EnumerateDisk(string disk)
         {
-            // _disks[disk] вернет object, который мы приводим к IEnumerable<Song>. если это значение будет null, будет брошено исключение
-            return _disks[disk] as IEnumerable<Song> ?? throw new ArgumentException("Диск '" + disk + "' не найден", "disk");
+            // _disks[disk] вернет object, который мы приводим к List<Song>. если это значение будет null, будет брошено исключение
+            List<Song> set = _disks[disk] as List<Song>;
+            if (set == null) throw new ArgumentException("Диск '" + disk + "' не найден", "disk");
+            return set;
+
         }
 
         #endregion
@@ -56,7 +62,6 @@ namespace Lab6.Task4
         // Добавляет песню в каталог.
         public void AddSong(Song song, string disk)
         {
-
             // Наличие диска в каталоге.
             if (!_disks.Contains(disk))
             {
@@ -64,7 +69,7 @@ namespace Lab6.Task4
             }
 
             // Получаем список песен на диске.
-            ICollection<Song> diskSongs = _disks[disk] as ICollection<Song>;
+            List<Song> diskSongs = _disks[disk] as List<Song>;
 
             // Если песеня уже есть на диске
             if (diskSongs.Contains(song))
@@ -79,21 +84,38 @@ namespace Lab6.Task4
         // Удаляет песню из каталога.
         public void RemoveSong(Song song, string disk)
         {
-            ICollection<Song> diskSongs = _disks[disk] as ICollection<Song>;
+            List<Song> diskSongs = _disks[disk] as List<Song>;
             diskSongs.Remove(song);
         }
 
 
         // Список песен в каталоге
-        public IEnumerable<Song> EnumerateSongs()
+        public List<Song> EnumerateSongs()
         {
-            return _disks.Values.Cast<ICollection<Song>>().SelectMany(songs => songs).Distinct();
+            List<Song> list = new List<Song>();
+            foreach (List<Song> songs in _disks.Values)
+                foreach (Song song in songs)
+                {
+                    list.Add(song);
+                }
+
+            return list;
         }
 
-        public IEnumerable<Song> FindSongs(string artistName)
+        // Поиск песен по исполнителю
+        public List<Song> FindSongs(string artistName)
         {
             Regex reg = new Regex(artistName);
-            return EnumerateSongs().Where(song => reg.IsMatch(song.Artist)).ToList();
+            List<Song> list = new List<Song>();
+            foreach (List<Song> songs in _disks.Values)
+                foreach (Song song in songs)
+                {
+                    if (reg.IsMatch(song.Artist))
+                    {
+                        list.Add(song);
+                    }
+                }
+            return list;
         }
         #endregion
     }
