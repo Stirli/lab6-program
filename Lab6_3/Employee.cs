@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Lab6
+namespace Lab6_3
 {
     internal class Employee
     {
-        public string LastName { get; }
-        public string SecondName { get; }
-        public string FirstName { get; }
-        public Gender Gender { get; }
-        public int Age { get; }
-        public double Salary { get; }
+        public string LastName { get; set; }
+        public string SecondName { get; set; }
+        public string FirstName { get; set; }
+        public Gender Gender { get; set; }
+        public int Age { get; set; }
+        public double Salary { get; set; }
 
-        private Employee(string lastName, string secondName, string firstName, Gender gender, int age, double salary)
+        public Employee(string lastName, string secondName, string firstName, Gender gender, int age, double salary)
         {
             LastName = lastName;
             SecondName = secondName;
@@ -43,5 +39,11 @@ namespace Lab6
         {
             return string.Format("| {0,-15} | {1,-10} | {2,-15} | Пол: {5,3} | Возраст: {3,3} | з/п: {4,5}р. |", LastName, SecondName, FirstName, Age, Salary, Gender == Gender.Male ? "муж" : (Gender == Gender.Female ? "жен" : "нет"));
         }
+    }
+
+    internal enum Gender
+    {
+        Male,
+        Female
     }
 }
